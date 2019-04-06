@@ -1,0 +1,60 @@
+version: '3.7'
+services:
+  daredevil:
+    image: daredevil
+    deploy:
+      mode: replicated
+      replicas: 5
+      update_config:
+        parallelism: 1
+        delay: 1s
+        order: stop-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=80"
+        - "traefik.backend=daredevil"
+        - "traefik.backend.loadbalancer.swarm=true"
+        - "traefik.frontend.rule=Host:echoipdomain.ir,www.echoipdomain.ir"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  traefik:
+    image: traefik
+    command: 
+      - "--web"
+      - "--entrypoints=Name:http Address::80 ForwardedHeaders.trustedIPs:127.0.0.1"
+      - "--entrypoints=Name:https Address::443 TLS"
+      - "--defaultentrypoints=http,https"
+      - "--acme"
+      - "--acme.storage=/acme.json"
+      - "--acme.entryPoint=https"
+      - "--acme.httpChallenge.entryPoint=http"
+      - "--acme.onHostRule=true"
+      - "--acme.onDemand=false"
+      - "--acme.email=ali@kaviani.net"
+      - "--docker"
+      - "--docker.swarmmode"
+      - "--docker.watch"
+      - "--docker.domain=echoipdomain.ir"
+      - "--logLevel=DEBUG"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.port=8080"
+        - "traefik.frontend.rule=Host:echoipdomain.com"
+        - "traefik.frontend.auth.basic.users=username:password"
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+      - ./acme.json:/acme.json
