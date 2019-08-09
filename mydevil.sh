@@ -36,7 +36,7 @@ _deploy_daredevil_latest () {
 
 _build_daredevil_latest () {
   echo "building daredevil:latest ..."
-  docker build --no-cache --build-arg HTTP_PROXY="http://bridge.saba-e.com:9999" --build-arg HTTPS_PROXY="http://yourhttpproxysever.com:2222" -t daredevil:$(git --git-dir="${PATH_PROG}/.git" log --pretty=format:'%h' -n 1) "${PATH_PROG}"
+  docker build --no-cache --build-arg HTTP_PROXY="http://yourhttpproxysever.com:2222" --build-arg HTTPS_PROXY="http://yourhttpproxysever.com:2222" -t daredevil:$(git --git-dir="${PATH_PROG}/.git" log --pretty=format:'%h' -n 1) "${PATH_PROG}"
   docker tag daredevil:$(git --git-dir="${PATH_PROG}/.git" log --pretty=format:'%h' -n 1) daredevil:latest
   echo "done"
 }
